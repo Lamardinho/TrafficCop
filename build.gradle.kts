@@ -1,11 +1,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.4.5"
-    id("io.spring.dependency-management") version "1.0.11.RELEASE"
+    id("org.springframework.boot") version "2.3.6.RELEASE"
+    java
     kotlin("jvm") version "1.4.32"
     kotlin("plugin.spring") version "1.4.32"
+    kotlin("kapt") version "1.4.20"
 }
+
+apply(plugin = "io.spring.dependency-management")
 
 group = "com.example"
 version = "0.0.1-SNAPSHOT"
@@ -24,7 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("com.vladmihalcea:hibernate-types-52:2.2.2")
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.10")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("com.auth0:java-jwt:3.10.3")
 
@@ -33,6 +36,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.2.9")
     implementation("org.liquibase:liquibase-core")
     testImplementation("com.h2database:h2")
+    testImplementation("org.mockito:mockito-core:3.6.28")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }
@@ -40,7 +44,7 @@ dependencies {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
+        freeCompilerArgs = listOf("-Xjvm-default=enable")
         jvmTarget = "1.8"
     }
 }
