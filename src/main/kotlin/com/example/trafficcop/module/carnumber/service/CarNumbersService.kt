@@ -11,18 +11,18 @@ class CarNumbersService(
     private val dictionary: Dictionary,
     private val carNumbersRepository: CarNumbersRepository
 ) {
-    /** Для генерации последующего Car Number */
+    /**
+     * Для генерации последующего Car Number
+     */
     fun getNewCarNumber(): CarNumber {
-        val a = "А111АА 116 RUS"
+        val startNum = Dictionary.START_NUM_116
         val carNumbers = carNumbersRepository.findAll()
-        if (carNumbers.isEmpty()) return save(CarNumber(number = a))
+        if (carNumbers.isEmpty()) return save(CarNumber(number = startNum))
 
         val carNumber = carNumbers.last()
 
-        val number = carNumber.number
-
-        if (number == "Х999ХХ") {    //todo: проверить
-            carNumber.number = a
+        if (carNumber.number == Dictionary.END_NUM_116) {
+            carNumber.number = startNum
             return save(carNumber)
         }
 
@@ -38,26 +38,32 @@ class CarNumbersService(
             return save(carNumber)
         }
 
-        // проверяем последнюю цифру:
         val letters = dictionary.letters.sorted()
+
+        // проверяем последнюю цифру:
         if (char3 != letters.last()) {
-            for (i in letters.indices) {
-                if (char3 == letters[i]) {
-                    char3 = letters[i + 1]
-                    carNumber.number = char1 + digits + char2 + char3 + " " + Dictionary.REGION_116
-                    return save(carNumber)
-                }
-            }
+            char3 = checkChar(char3)
+            return updateCarNum(carNumber = carNumber, digits = digits, char1 = char1, char2 = char2, char3 = char3)
         }
 
-        //todo: проверяем предпоследнюю цифру
-        //todo: проверяем первую цифру
+        // проверяем предпоследнюю цифру
+        if (char2 != letters.last()) {
+            char2 = checkChar(char2)
+            return updateCarNum(carNumber = carNumber, digits = digits, char1 = char1, char2 = char2, char3 = char3)
+        }
 
+        // проверяем первую цифру
+        if (char1 != letters.last()) {
+            char1 = checkChar(char1)
+            return updateCarNum(carNumber = carNumber, digits = digits, char1 = char1, char2 = char2, char3 = char3)
+        }
 
         return save(carNumber)
     }
 
-    /** Для генерации случайного Car Number */
+    /**
+     *  Для генерации случайного Car Number
+     */
     fun getRandomCarNumber(): CarNumber {
 
         val numberResult =
@@ -79,6 +85,24 @@ class CarNumbersService(
 
     fun save(carNum: CarNumber): CarNumber {
         return carNumbersRepository.save(carNum)
+    }
+
+    private fun updateCarNum(
+        carNumber: CarNumber, digits: String, char1: String, char2: String, char3: String
+    ): CarNumber {
+        carNumber.number = char1 + digits + char2 + char3 + " " + Dictionary.REGION_116
+        return save(carNumber)
+    }
+
+    // проверяем последнюю цифру:
+    private fun checkChar(char: String): String {
+        val letters = dictionary.letters.sorted()
+        for (i in letters.indices) {
+            if (char == letters[i]) {
+                return letters[i + 1]
+            }
+        }
+        return char
     }
 
     private fun getRandomDigit(): String {
