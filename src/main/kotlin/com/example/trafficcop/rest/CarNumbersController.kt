@@ -13,8 +13,7 @@ class CarNumbersController(
     /** Для генерации случайного Car Number */
     @GetMapping("/random")
     fun getRandom(): String {
-
-        val carNumber = carNumbersService.getRandomCarNumber()
+        val carNumber = carNumbersService.getRandomCarNumber().number
 
         println(carNumber)
         return carNumber
@@ -22,6 +21,9 @@ class CarNumbersController(
 
     @GetMapping("/next")
     fun getNext(): String {
-        return ""
+        val carNumber = carNumbersService.getNewCarNumber().number
+
+        println(carNumber)
+        return carNumber
     }
 }

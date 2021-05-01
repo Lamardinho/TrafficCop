@@ -11,15 +11,70 @@ class CarNumbersService(
     private val dictionary: Dictionary,
     private val carNumbersRepository: CarNumbersRepository
 ) {
+    /** Для генерации последующего Car Number */
+    fun getNewCarNumber(): CarNumber {
+        val a = "А111АА 116 RUS"
+        val carNumbers = carNumbersRepository.findAll()
+        if (carNumbers.isEmpty()) return save(CarNumber(number = a))
+
+        val carNumber = carNumbers.last()
+
+        val number = carNumber.number
+
+        if (number == "Х999ХХ") {    //todo: проверить
+            carNumber.number = a
+            return save(carNumber)
+        }
+
+        var digits = carNumber.number.substring(1, 4)
+        var char1 = carNumber.number.substring(0, 1)
+        var char2 = carNumber.number.substring(4, 5)
+        var char3 = carNumber.number.substring(5, 6)
+
+        // проверяем цифры:
+        if (digits != "999") {
+            digits = (digits.toInt() + 1).toString()
+            carNumber.number = char1 + digits + char2 + char3 + " " + Dictionary.REGION_116
+            return save(carNumber)
+        }
+
+        // проверяем последнюю цифру:
+        val letters = dictionary.letters.sorted()
+        if (char3 != letters.last()) {
+            for (i in letters.indices) {
+                if (char3 == letters[i]) {
+                    char3 = letters[i + 1]
+                    carNumber.number = char1 + digits + char2 + char3 + " " + Dictionary.REGION_116
+                    return save(carNumber)
+                }
+            }
+        }
+
+        //todo: проверяем предпоследнюю цифру
+        //todo: проверяем первую цифру
+
+
+        return save(carNumber)
+    }
+
     /** Для генерации случайного Car Number */
-    fun getRandomCarNumber(): String {
-        val letter = dictionary.letters.random()
-        val digit = getRandomDigit()
-        val letters = dictionary.letters.random() + dictionary.letters.random()
+    fun getRandomCarNumber(): CarNumber {
 
-        val carNumber = save(CarNumber(number = letter + digit + letters + " " + Dictionary.REGION_116))
+        val numberResult =
+            dictionary.letters.random() + getRandomDigit() + dictionary.letters.random() + dictionary.letters.random() +
+                    " " + Dictionary.REGION_116
 
-        return carNumber.number
+        val carNumbers = carNumbersRepository.findAll()
+
+        if (carNumbers.isEmpty()) {
+            return save(CarNumber(number = numberResult))
+        }
+
+        val carNumber = carNumbers.last()
+        carNumber.number = numberResult
+        save(carNumber)
+
+        return carNumber
     }
 
     fun save(carNum: CarNumber): CarNumber {
